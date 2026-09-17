@@ -1,18 +1,18 @@
-# 🎯 Resume Tailor - AI-Powered Resume Generation Tool
+#  Resume Tailor - AI-Powered Resume Generation Tool
 
 Automatically tailor your resume to any job description using **Google Gemini AI** and **LaTeX**. Process 40+ jobs per day with zero token costs from Claude.
 
 **Why Resume Tailor?**
-- 🚀 **Fast**: Tailor 40+ resumes/day locally
-- 💰 **Cheap**: Gemini Free Tier = 1M tokens/day (15 req/min)
-- 🎨 **Smart**: Preserves LaTeX formatting perfectly
-- 🖼️ **Screenshot Support**: Extract JD text from 3 images per job
-- 📁 **Organized**: Auto-saves to `/resumes/Company_Role/`
-- 🌐 **Web UI**: Simple dashboard + API backend
+-  **Fast**: Tailor 40+ resumes/day locally
+-  **Cheap**: Gemini Free Tier = 1M tokens/day (15 req/min)
+-  **Smart**: Preserves LaTeX formatting perfectly
+-  **Screenshot Support**: Extract JD text from 3 images per job
+-  **Organized**: Auto-saves to `/resumes/Company_Role/`
+-  **Web UI**: Simple dashboard + API backend
 
 ---
 
-## 📋 Prerequisites
+##  Prerequisites
 
 - **Python 3.10+** (backend)
 - **Node.js 18+** (frontend)
@@ -38,7 +38,7 @@ sudo apt-get install -y texlive-latex-base texlive-latex-extra texlive-fonts-rec
 
 ---
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### Step 1: Clone or Download Project
 
@@ -107,7 +107,7 @@ Visit `http://localhost:3000` and start tailoring!
 
 ---
 
-## 🏗️ Project Structure
+##  Project Structure
 
 ```
 resume-tailor-project/
@@ -136,7 +136,7 @@ resume-tailor-project/
 
 ---
 
-## ⚙️ Configuration
+##  Configuration
 
 ### Backend (.env)
 
@@ -180,7 +180,7 @@ NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
 
 ---
 
-## 🔄 Customizing Your Resume Template
+##  Customizing Your Resume Template
 
 The default resume is stored in `backend/templates/default_resume.tex`.
 
@@ -193,7 +193,7 @@ The default resume is stored in `backend/templates/default_resume.tex`.
 
 ---
 
-## 💰 Cost Breakdown
+##  Cost Breakdown
 
 | Service | Cost | Notes |
 |---------|------|-------|
@@ -207,7 +207,7 @@ Claude API = ~$0.01 per resume. **Gemini = ~$0.0001 per resume.**
 
 ---
 
-## 🚦 API Endpoints
+##  API Endpoints
 
 ### Tailor Resume
 ```http
@@ -263,7 +263,7 @@ Response: { "status": "ok", "service": "Resume Tailor API" }
 
 ---
 
-## 🎯 Tips for Best Results
+##  Tips for Best Results
 
 1. **Paste Full JD** → More context = better tailoring
 2. **Screenshots Quality** → Clear, readable images work best
@@ -273,7 +273,7 @@ Response: { "status": "ok", "service": "Resume Tailor API" }
 
 ---
 
-## 🐛 Troubleshooting
+##  Troubleshooting
 
 ### "pdflatex not found"
 ```bash
@@ -306,7 +306,7 @@ sudo apt-get install texlive-latex-base texlive-latex-extra
 
 ---
 
-## 📊 Performance
+##  Performance
 
 - **Single Resume:** 15–30 seconds
 - **Batch (10 resumes):** 2.5–5 minutes
@@ -320,7 +320,7 @@ sudo apt-get install texlive-latex-base texlive-latex-extra
 
 ---
 
-## 🤖 How It Works
+##  How It Works
 
 1. **You submit:** Company, Role, JD (text + images)
 2. **Backend processes:**
@@ -333,7 +333,7 @@ sudo apt-get install texlive-latex-base texlive-latex-extra
 
 ---
 
-## 🔒 Privacy & Security
+##  Privacy & Security
 
 - ✅ All processing runs **locally** on your machine
 - ✅ Your resume template never leaves your system (sent to Gemini only for tailoring, not stored)
@@ -342,7 +342,7 @@ sudo apt-get install texlive-latex-base texlive-latex-extra
 
 ---
 
-## 📦 Deployment
+##  Deployment
 
 **Frontend → Vercel, backend → any Docker host (Render / Railway / Fly.io).**
 The API needs `pdflatex`, which serverless platforms can't provide, so it ships
@@ -367,13 +367,13 @@ docker compose up --build
 
 ---
 
-## 📝 License
+##  License
 
 MIT — Use freely for personal projects.
 
 ---
 
-## 🤝 Contributing
+##  Contributing
 
 Found a bug? Want to add features?
 1. Fork the repo
@@ -384,7 +384,7 @@ Found a bug? Want to add features?
 
 ---
 
-## 💬 Feedback
+##  Feedback
 
 Questions? Issues? Suggestions?
 - Open an issue in GitHub
@@ -392,7 +392,7 @@ Questions? Issues? Suggestions?
 
 ---
 
-## ⭐ Credits
+##  Credits
 
 - **Gemini API** — Google
 - **LaTeX** — The LaTeX Project
@@ -401,6 +401,6 @@ Questions? Issues? Suggestions?
 
 ---
 
-**Happy tailoring! 🚀**
+**Happy tailoring!**
 
 For 40 jobs/day: just keep the backend + frontend running, open the web UI, and start submitting JDs. Your resume folder will fill up automatically.
