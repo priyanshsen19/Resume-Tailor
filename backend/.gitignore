@@ -1,0 +1,17 @@
+# Safety net if a repo is ever initialised inside backend/ (the root .gitignore is the source of truth)
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+.env
+.env.*
+!.env.example
+resumes/
+data/
+key_usage.json
+key_usage.tmp
+*.pdf
+*.aux
+*.log
+*.out
+.DS_Store

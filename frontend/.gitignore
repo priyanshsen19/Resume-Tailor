@@ -1,0 +1,12 @@
+# Safety net if a repo is ever initialised inside frontend/ (the root .gitignore is the source of truth)
+node_modules/
+.next/
+out/
+.vercel/
+.env
+.env.*
+!.env.example
+*.tsbuildinfo
+next-env.d.ts
+npm-debug.log*
+.DS_Store

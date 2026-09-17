@@ -1,0 +1,303 @@
+    %-------------------------
+% Resume in Latex
+% Author
+% License : MIT
+%------------------------
+
+%---- Required Packages and Functions ----
+
+\documentclass[a4paper,11pt]{article}
+\usepackage{latexsym}
+\usepackage{fontawesome5}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{ragged2e}
+\usepackage[empty]{fullpage}
+\usepackage{wrapfig}
+\usepackage{lipsum}
+\usepackage{tabularx}
+\usepackage{titlesec}
+\usepackage{geometry}
+\usepackage{marvosym}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage{fontawesome5}
+\usepackage{multicol}
+\usepackage{graphicx}
+\usepackage{cfr-lm}
+\usepackage[T1]{fontenc}
+\setlength{\multicolsep}{0pt} 
+\pagestyle{fancy}
+\fancyhf{} % clear all header and footer fields
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+\geometry{left=1.4cm, top=0.8cm, right=1.2cm, bottom=1cm}
+% Adjust margins
+%\addtolength{\oddsidemargin}{-0.5in}
+%\addtolength{\evensidemargin}{-0.5in}
+%\addtolength{\textwidth}{1in}
+\usepackage[most]{tcolorbox}
+\tcbset{
+	frame code={}
+	center title,
+	left=0pt,
+	right=0pt,
+	top=0pt,
+	bottom=0pt,
+	colback=gray!20,
+	colframe=white,
+	width=\dimexpr\textwidth\relax,
+	enlarge left by=-2mm,
+	boxsep=4pt,
+	arc=0pt,outer arc=0pt,
+}
+
+\urlstyle{same}
+
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% Sections formatting
+\titleformat{\section}{
+  \vspace{-4pt}\scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-7pt}]
+
+%-------------------------
+% Custom commands
+\newcommand{\resumeItem}[2]{
+  \item{
+    \textbf{#1}{\hspace{0.5mm}#2 \vspace{-0.5mm}}
+  }
+}
+
+\newcommand{\resumePOR}[3]{
+\vspace{0.5mm}\item
+    \begin{tabular*}{0.97\textwidth}[t]{l@{\extracolsep{\fill}}r}
+        \textbf{#1}\hspace{0.3mm}#2 & \textit{\small{#3}} 
+    \end{tabular*}
+    \vspace{-2mm}
+}
+
+\newcommand{\resumeSubheading}[4]{
+\vspace{0.5mm}\item
+    \begin{tabular*}{0.98\textwidth}[t]{l@{\extracolsep{\fill}}r}
+        \textbf{#1} & \textit{\footnotesize{#4}} \\
+        \textit{\footnotesize{#3}} &  \footnotesize{#2}\\
+    \end{tabular*}
+    \vspace{-2.4mm}
+}
+
+\newcommand{\resumeProject}[4]{
+\vspace{0.5mm}\item
+    \begin{tabular*}{0.98\textwidth}[t]{l@{\extracolsep{\fill}}r}
+        \textbf{#1} & \textit{\footnotesize{#3}} \\
+        \footnotesize{\textit{#2}} & \footnotesize{#4}
+    \end{tabular*}
+    \vspace{-2.4mm}
+}
+
+\newcommand{\resumeSubItem}[2]{\resumeItem{#1}{#2}\vspace{-4pt}}
+% \renewcommand{\labelitemii}{$\circ$}
+\renewcommand{\labelitemi}{$\vcenter{\hbox{\tiny$\bullet$}}$}
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=*,labelsep=0mm]}
+\newcommand{\resumeHeadingSkillStart}{\begin{itemize}[leftmargin=*,itemsep=1.7mm, rightmargin=2ex]}
+\newcommand{\resumeItemListStart}{\begin{justify}\begin{itemize}[leftmargin=3ex, rightmargin=2ex, noitemsep,labelsep=1.2mm,itemsep=0mm]\small}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}\vspace{2mm}}
+\newcommand{\resumeHeadingSkillEnd}{\end{itemize}\vspace{-2mm}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\end{justify}\vspace{-2mm}}
+\newcommand{\cvsection}[1]{%
+\vspace{2mm}
+\begin{tcolorbox}
+    \textbf{\large #1}
+\end{tcolorbox}
+    \vspace{-4mm}
+}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}%
+\newcolumntype{R}{>{\raggedleft\arraybackslash}X}%
+\newcolumntype{C}{>{\centering\arraybackslash}X}%
+%---- End of Packages and Functions ------
+%-------------------------------------------
+%%%%%%  CV STARTS HERE  %%%%%%%%%%%
+%%%%%% DEFINE ELEMENTS HERE %%%%%%%
+
+\newcommand{\name}{Priyansh Sen} % Your Name
+\newcommand{\course}{Computer Science and Engineering} % Your Program
+\newcommand{\phone}{9109390625} % Your Phone Number
+\newcommand{\emaila}{priyansh.sen2106@gmail.com} %Email 1
+
+\begin{document}
+\fontfamily{cmr}\selectfont
+%----------HEADING-----------------
+{ 
+\begin{tabularx}{\linewidth}{L r} \\
+  \textbf{\huge \name} & \href{tel:+919109390625}{+91 9109390625}\\
+  {\href{https://www.leetcode.com/priyxansh20}{\underline{leetcode.com/priyxansh20}}} {\small $\rightarrow$} & \href{mailto:\emaila}{\underline{priyansh.sen2106@gmail.com}} {\small $\rightarrow$} \\
+  Software Development Engineer - 2 | Pattern Technologies & \href{https://priyansh-portfolio-phi.vercel.app}{\underline{portfolio}} {\small $\rightarrow$}\\
+  Distributed Systems Enthusiast & \href{https://github.com/priyanshsen19}{\underline{github.com/priyanshsen19}} {\small $\rightarrow$} \\  
+  {} & \href{https://www.linkedin.com/in/priyanshsen21/}{\underline{linkedin.com/in/priyanshsen21}} {\small $\rightarrow$}
+\end{tabularx}
+ \vspace{-22.5pt}
+}
+%-----------SUMMARY-----------------
+\section{\textbf{Professional Summary}}
+\vspace{2pt}
+\small{Full-Stack Engineer with 3+ years architecting distributed systems and payment \& refund automation platforms. Expert in REST API designs, database optimization, event-driven \& microservices architecture, and scalability. Proven track record: 95\% latency improvements, 96\%+ transactions accuracy, 95\% automation gains. Proficient in PostgreSQL optimization, Kafka streaming, Redis caching, and building high-throughput systems serving 5,000+ daily transactions.}
+\vspace{-10pt}
+
+
+%-----------Technical skills-----------------
+\section{\textbf{Skills Summary}}
+ \begin{itemize}[leftmargin=0.05in, label={}]
+    \small{\item{
+     \textbf{Languages}{: Ruby, JavaScript, TypeScript, Python, Java} \\
+     \textbf{Frameworks}{: Ruby on Rails, React.js, Vue.js, Flask, Python Libraries} \\
+    \textbf{Tools / Platform}{: Node.js, Git, Github, Docker, Kafka, Linux, Rspec, Jest} \\
+     \textbf{Databases}{: PostgreSQL, MySQL, MongoDB, Redis, AWS (S3, CloudWatch, RDS)} \\
+     \textbf{AI \& Automation Tools}{: Claude, OpenAI, Copilot, Cursor, N8N, Replit} \\
+     \textbf{Technical Domains}{: Data Structures \& Algorithms, Object-Oriented Programming, System Design, REST APIs, GraphQL, Database Optimization (Query Tuning, Indexing), CI/CD Pipelines, LLD/HLD, Agile Methodology,} \\
+    }}
+ \end{itemize}
+ \vspace{-20pt}
+
+
+%-----------EXPERIENCE-----------------
+\section{\textbf{Work Experience}}
+  \resumeSubHeadingListStart
+
+    \resumeSubheading
+      {Pattern Technologies}{}
+      {Software Development Engineer - 2 | Fulfillment \& Logistics }{Dec 2025 -- June 2026, Pune}
+      \vspace{-1.0mm}
+      \resumeItemListStart
+        \item Architected major modules in Warehouse Management System (Ruby on Rails, Node.js, React, PostgreSQL, AWS) using event-driven architecture, powering inbound receiving, stock allocation, and shipment dispatch across 50+ Fulfillment Centers with sub-second latency.
+        \item Leveraged Claude Cowork to create a skill that automates purchase order placement with multi-SKU listings and shipment receiving workflows.
+        \item Built end-to-end Print \& Scan Label workflow for Amazon partnered carrier program (PCP), AWS S3 archival, async carrier tracking via sidekiq, 95\% processed via automation, eliminating manual validations, improving throughput by 5x with zero defects.
+        \item Revamped Internal Transfer dashboard microservice leveraging Claude code for query analysis and MCP-powered database debugging; identified and eliminated N+1 anti-patterns, forced strategic indexing on sequential scan queries, and redesigned PostgreSQL execution plans; reduced API p99 latency from 120s → 5s (96\% improvement) handling 1,500+ cartons/warehouse.
+        \item Drove cross-functional technical reviews; authored spike documents with root-cause analysis for distributed system failures (pallet-building race conditions, PCP cancellation idempotency gaps) and constraint optimization; brought down P1 incidents by 35\%.
+      \resumeItemListEnd
+
+    \vspace{-1.0mm}
+    \resumeSubheading
+      {CaratLane}{}
+      {Software Development Engineer - 2 | Payments \& POP}{Mar 2025 – Nov 2025, Chennai}
+      \vspace{-1.0mm}
+      \resumeItemListStart
+        \item Surfaced refund tracking per order on My Accounts via Fyno notifications reducing support tickets by 15\%.
+        \item Automated refund workflows, eliminating 95\% of manual tasks and processing 60,000+ transactions/month.
+        Integrated Juspay payment gateway (UPI, netbanking, cards) with asynchronous Kafka-based processing; increased
+        success rate 20\%, cut p95 latency 30\%, and scaled to handle 2x transaction volume.
+       \item Spearheaded ERP migration (Synergics → EY); built reconciliation scripts and data validation pipelines; improved order sync accuracy 78\% → 93\%, ensuring data integrity across 10,000+ monthly transactions with zero downtime.
+        \item Grew RSpec / Jest test coverage from \textless48\% to 76\% leveraging Cursor for test cases and bulk testing, reducing P1 API failures by ~25\% and sustaining zero-downtime deployments over 10 months with automated CI/CD pipelines.
+        \item Hardened refund validation with idempotency checks and double-spend guards, eliminating 30% of duplicate pay-
+outs while maintaining eventual consistency across distributed services.
+      \resumeItemListEnd
+     \vspace{-1.0mm}
+       {\footnotesize\textit{Software Development Engineer - 1 | Refunds} \hfill \textit{Jun 2023 – Mar 2025, Chennai}}
+      \vspace{-3.0mm}
+      \resumeItemListStart
+        \item Engineered stateless Digital Gold Refunds service (Rails + MySQL); implemented idempotent payment APIs with deduplication logic; cut transaction latency 60\%, handling 500+ requests/sec.
+        \item Monitored post-sales systems and resolved critical bugs to support zero-downtime production deployments.
+        \item Shipped POP Refunds module with full payment disbursement flow (Node.js + MySQL), reaching 99\% payout accuracy across 3 channels using transaction management and reconciliation logic.
+        \item Contributed to 5+ production-grade modules using Ruby on Rails, Node.js (TypeScript), Vue.js, React.js, Git, MySQL, and MongoDB.
+      \resumeItemListEnd
+    \vspace{-3.0mm}
+  \resumeSubHeadingListEnd
+\vspace{-6mm}
+
+%-----------PROJECTS-----------------
+\section{\textbf{Projects}}
+\resumeSubHeadingListStart  
+    \resumeProject
+    {LastMinPrep --- Full-stack SaaS Platform \href{https://github.com/priyanshsen19/LastMinPrep}{\underline{GitHub}} {\small $\rightarrow$}}
+    {Full-stack web app: guest sessions $\rightarrow$ user accounts, AI interview coaching, admin analytics}
+    {Aug 2026}{}
+    \resumeItemListStart
+      \item Architected production-ready web app with custom authentication (scrypt password hashing, HMAC-signed httpOnly session cookies, zero external auth services); implemented dual-mode identity system (ephemeral guest UUIDs + persistent registered accounts with atomic prep migration on signup); built admin analytics dashboard tracking 4 metrics (signups, visits, guest sessions, feature adoption); tech stack: Next.js 16, React 19, Prisma 7 (pg driver adapter), PostgreSQL (Supabase), Gemini AI; enforced security via prompt-injection defense, rate-limiting, parameterized queries, and cross-user isolation; deployed with TypeScript
+    \resumeItemListEnd
+
+  \resumeProject
+    {EcomProductsEvaluator --- Microservices Monorepo \href{https://github.com/priyanshsen19/EcomProductsEvaluator}{\underline{GitHub}} {\small $\rightarrow$}}
+    {Full-stack e-commerce platform with custom DSL rule engine and WooCommerce integration}
+    {Oct 2025}{}
+    \resumeItemListStart
+      \item Devised a TypeScript microservice (product-service, segment-service, frontend) with WooCommerce REST API ingestion, cron-based sync every 3 hours, and custom DSL rule engine compiling text-based segment rules into MongoDB queries; deployed on Railway and Rendered with OpenAPI documentation.
+    \resumeItemListEnd
+
+\vspace{-2mm}
+\resumeSubHeadingListEnd
+\vspace{-6.5mm}
+
+
+
+
+%-----------EDUCATION-----------
+\section{\textbf{Education}}
+\resumeSubHeadingListStart
+    \resumeSubheading
+    {Bachelor of Technology in Computer Science and Engineering}{8.73 CGPA}
+    {Vellore Institute of Technology University, Bhopal}{2019-2023}
+    \resumeSubheading
+    {St. Xavier Senior Secondary}{12th: 8.4 — 10th: 8.8 CGPA}
+    {PCM with Computers}{2017-2019}
+\resumeSubHeadingListEnd
+\vspace{-5.5mm}
+
+% %-----------Certifications-----------
+% \section{\textbf{Certifications}}
+% \resumeSubHeadingListStart 
+% \resumeSubheading
+%   {Applied Machine Learning in Python --- University of Michigan | Coursera |
+%     \href{https://coursera.org/verify/FM3SSRR894JZ}{\underline{Certificate}} {\small $\rightarrow$}}{}
+%     {}{Dec 2021}
+% \vspace{-10pt}
+% \resumeSubheading
+%   {Machine Learning --- Stanford University (Andrew Ng) | Coursera |
+%     \href{https://coursera.org/verify/8DJJ8SZBTDCQ}
+%     {\underline{Certificate}} {\small $\rightarrow$}}{}
+%     {}{Sep 2021}
+% \resumeSubHeadingListEnd
+% \vspace{-28pt}
+% %
+% %-----------Positions of Responsibility-----------------
+% \section{\textbf{Positions of Responsibility}}
+% \vspace{-0.4mm}
+% \resumeSubHeadingListStart
+% \resumePOR{On Desk Registrations Volunteer } % Position
+%     {Aarhant Cyber Week Event - RCOEM, Nagpur} %Club,Event
+%     {Oct - Dec 2022} %Tenure Period \\
+%     \resumeItemListStart
+%     \item {Helped to attract close to 300 attendees to the event.}
+%     \item {Collected over Rs. 20,000 in entry fees for different activities.}
+%     \resumeItemListEnd
+
+% \resumeSubHeadingListEnd
+% \vspace{-5mm}
+
+
+
+
+%-----------Achievements-----------------
+\section{\textbf{Achievements}}
+\vspace{-0.4mm}
+\resumeSubHeadingListStart
+\resumePOR{ CaratLane Award}
+{ Awarded for automation improving latency and resilience in payment systems. }
+{ 2024}
+\resumePOR{ Google Hash code AIR 5k } % Award
+    {Ranked Top 5K among 180+ countries  } % Event
+{ 2021} %Event Year
+    
+\resumePOR{ Science Exhibition 1st Prize } % Award
+    {Secured 1st Prize for building functional drone; featured in Patrika News } % Event
+{ 2016} %Event Year
+
+\resumeSubHeadingListEnd
+\vspace{-5mm}
+
+
+
+%-------------------------------------------
+\end{document}

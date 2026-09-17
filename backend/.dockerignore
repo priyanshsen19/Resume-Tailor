@@ -1,0 +1,15 @@
+venv/
+.venv/
+__pycache__/
+*.pyc
+.env
+.env.*
+!.env.example
+resumes/
+key_usage.json
+key_usage.tmp
+*.pdf
+*.log
+*.aux
+*.out
+.DS_Store

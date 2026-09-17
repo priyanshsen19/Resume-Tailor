@@ -1,0 +1,39 @@
+# Render Blueprint - deploys the backend as a Docker web service.
+# https://render.com/docs/blueprint-spec
+#
+# 1. Push this repo to GitHub
+# 2. Render dashboard -> New -> Blueprint -> select the repo
+# 3. Fill in GEMINI_API_KEYS and ALLOWED_ORIGINS when prompted
+#
+# NOTE: the free plan has an ephemeral disk (generated resumes disappear on
+# restart/redeploy) and sleeps after 15 min idle (first request ~1 min).
+# Upgrade the plan and add a `disk:` mounted at /app/resumes to persist files.
+services:
+  - type: web
+    name: resume-tailor-api
+    runtime: docker
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: GEMINI_API_KEYS
+        sync: false            # comma-separated pool of keys (set in dashboard)
+      - key: GEMINI_DAILY_LIMIT_PER_KEY
+        value: "20"
+      - key: GEMINI_MODEL
+        value: gemini-3.6-flash
+      - key: ALLOWED_ORIGINS
+        sync: false            # e.g. https://your-app.vercel.app
+      - key: MAX_LATEX_REPAIR_ATTEMPTS
+        value: "2"
+      - key: SUPABASE_URL
+        sync: false            # https://<ref>.supabase.co
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false            # service_role key (server only - never in the frontend)
+      - key: SUPABASE_BUCKET
+        value: resumes
+      - key: RESUME_TTL_HOURS
+        value: "24"
