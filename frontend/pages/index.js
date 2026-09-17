@@ -39,9 +39,13 @@ export default function Home() {
   const [loadingResumes, setLoadingResumes] = useState(false);
   const [quota, setQuota] = useState(null);
   const resultRef = useRef(null);
-  const [needCode, setNeedCode] = useState(false);   // shared access code gate
+  // Shared access code: landing page is public, features need the code.
+  const [codeRequired, setCodeRequired] = useState(false);
+  const [needCode, setNeedCode] = useState(false);       // modal open?
   const [codeInput, setCodeInput] = useState('');
   const [codeError, setCodeError] = useState(null);
+  const pendingRef = useRef(null);                       // action to run after unlocking
+  const unlocked = () => !codeRequired || !!getAccessCode();
 
   const loadResumes = useCallback(async () => {
     setLoadingResumes(true);
@@ -74,7 +78,8 @@ export default function Home() {
         const { data } = await api.get('/health', { timeout: 8000 });
         if (cancelled) return;
         setBackend('online');
-        if (data.access_code_required && !getAccessCode()) { setNeedCode(true); return; }
+        setCodeRequired(!!data.access_code_required);
+        if (data.access_code_required && !getAccessCode()) return;   // public landing; unlock on first action
         loadResumes();
         loadQuota();
       } catch {
@@ -113,6 +118,15 @@ export default function Home() {
     return () => api.interceptors.response.eject(id);
   }, []);
 
+  /** Run `action` now if unlocked, otherwise ask for the code first and run it after. */
+  const withAccess = (action) => {
+    if (unlocked()) return action();
+    pendingRef.current = action;
+    setCodeError(null);
+    setNeedCode(true);
+    return undefined;
+  };
+
   const submitCode = async (e) => {
     e.preventDefault();
     setCodeError(null);
@@ -123,6 +137,9 @@ export default function Home() {
       setCodeInput('');
       loadResumes();
       loadQuota();
+      const run = pendingRef.current;
+      pendingRef.current = null;
+      if (run) run();
     } catch (err) {
       setAccessCode('');
       setCodeError(err?.response?.status === 401 ? 'Wrong code.' : errorMessage(err, 'Could not verify the code.'));
@@ -141,6 +158,7 @@ export default function Home() {
     setResult(null);
     if (!company.trim() || !role.trim()) return setError('Company and role are required.');
     if (!jdText.trim() && jdImages.length === 0) return setError('Paste the job description or upload screenshots of it.');
+    if (!unlocked()) return withAccess(() => submitTailor({ preventDefault() {} }));
 
     const form = new FormData();
     form.append('company', company.trim());
@@ -167,6 +185,7 @@ export default function Home() {
     setError(null);
     setResult(null);
     const isNew = selectedId === NEW_UPLOAD;
+    if (!unlocked()) return withAccess(() => submitRecompile({ preventDefault() {} }));
     if (!selectedId) return setError('Pick a resume to recompile.');
     if (isNew && (!rFile[0] || !rCompany.trim() || !rRole.trim())) return setError('Upload a .tex file and enter company and role.');
 
@@ -191,6 +210,7 @@ export default function Home() {
   };
 
   const deleteResume = async (r) => {
+    if (!unlocked()) return withAccess(() => deleteResume(r));
     if (!window.confirm(`Delete "${r.company} · ${r.role}"? This can't be undone.`)) return;
     try {
       await api.delete(`/resumes/${encodeURIComponent(r.id)}`);
@@ -257,16 +277,21 @@ export default function Home() {
         </section>
 
         {needCode && (
-          <form className={`${styles.card} ${styles.cardPad} ${styles.gate} ${styles.fadeIn}`} onSubmit={submitCode}>
-            <div className={styles.cardTitle}><span>Private beta</span></div>
-            <p className={styles.hint}>This app is for a few people. Enter the access code you were given.</p>
-            <input className={styles.input} type="password" placeholder="Access code" value={codeInput} onChange={(e) => setCodeInput(e.target.value)} autoFocus />
-            {codeError && <div className={`${styles.alert} ${styles.alertError}`}>{codeError}</div>}
-            <button type="submit" className={`${styles.btn} ${styles.btnPrimary}`} disabled={!codeInput.trim()}>Continue</button>
-          </form>
+          <div className={styles.backdrop} onClick={() => { setNeedCode(false); pendingRef.current = null; }}>
+            <form className={`${styles.card} ${styles.cardPad} ${styles.gate} ${styles.fadeIn}`} onSubmit={submitCode} onClick={(e) => e.stopPropagation()}>
+              <div className={styles.cardTitle}><span>Access code required</span></div>
+              <p className={styles.hint}>This app is private. Enter the access code you were given to continue.</p>
+              <input className={styles.input} type="password" placeholder="Access code" value={codeInput} onChange={(e) => setCodeInput(e.target.value)} autoFocus />
+              {codeError && <div className={`${styles.alert} ${styles.alertError}`}>{codeError}</div>}
+              <div className={styles.actions}>
+                <button type="submit" className={`${styles.btn} ${styles.btnPrimary}`} disabled={!codeInput.trim()}>Unlock</button>
+                <button type="button" className={`${styles.btn} ${styles.btnGhost}`} onClick={() => { setNeedCode(false); pendingRef.current = null; }}>Cancel</button>
+              </div>
+            </form>
+          </div>
         )}
 
-        <div className={styles.grid} style={needCode ? { display: 'none' } : undefined}>
+        <div className={styles.grid}>
           <section className={`${styles.card} ${styles.cardPad}`}>
             <div className={styles.tabs} role="tablist">
               <button role="tab" aria-selected={tab === 'tailor'} className={`${styles.tab} ${tab === 'tailor' ? styles.tabActive : ''}`} onClick={() => switchTab('tailor')}>
@@ -382,7 +407,16 @@ export default function Home() {
           </section>
 
           <aside className={styles.aside}>
-            <RecentResumes resumes={resumes} loading={loadingResumes} onRecompile={useForRecompile} onDelete={deleteResume} onRefresh={loadResumes} />
+            {unlocked() ? (
+              <RecentResumes resumes={resumes} loading={loadingResumes} onRecompile={useForRecompile} onDelete={deleteResume} onRefresh={loadResumes} />
+            ) : (
+              <section className={`${styles.card} ${styles.cardPad}`}>
+                <div className={styles.cardTitle}><span>Recent resumes</span></div>
+                <div className={styles.empty}>
+                  Private beta — <button type="button" className={styles.linkBtn} onClick={() => withAccess(() => {})}>enter your access code</button> to use the app.
+                </div>
+              </section>
+            )}
             <QuotaCard quota={quota} />
             <section className={`${styles.card} ${styles.cardPad}`}>
               <div className={styles.cardTitle}><span>How it works</span></div>
