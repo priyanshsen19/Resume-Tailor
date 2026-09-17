@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Head from 'next/head';
 import styles from '../styles/Home.module.css';
-import { api, errorMessage } from '../lib/api';
+import { api, errorMessage, getAccessCode, setAccessCode } from '../lib/api';
 import { ensureSession } from '../lib/supabase';
 import Dropzone from '../components/Dropzone';
 import Progress from '../components/Progress';
@@ -39,6 +39,9 @@ export default function Home() {
   const [loadingResumes, setLoadingResumes] = useState(false);
   const [quota, setQuota] = useState(null);
   const resultRef = useRef(null);
+  const [needCode, setNeedCode] = useState(false);   // shared access code gate
+  const [codeInput, setCodeInput] = useState('');
+  const [codeError, setCodeError] = useState(null);
 
   const loadResumes = useCallback(async () => {
     setLoadingResumes(true);
@@ -68,9 +71,10 @@ export default function Home() {
     let attempts = 0;
     const ping = async () => {
       try {
-        await api.get('/health', { timeout: 8000 });
+        const { data } = await api.get('/health', { timeout: 8000 });
         if (cancelled) return;
         setBackend('online');
+        if (data.access_code_required && !getAccessCode()) { setNeedCode(true); return; }
         loadResumes();
         loadQuota();
       } catch {
@@ -97,6 +101,33 @@ export default function Home() {
   useEffect(() => {
     if (result && resultRef.current) resultRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }, [result]);
+
+  useEffect(() => {
+    const id = api.interceptors.response.use(undefined, (err) => {
+      if (err?.response?.status === 401 && /access code/i.test(err.response.data?.detail || '')) {
+        setAccessCode('');
+        setNeedCode(true);
+      }
+      return Promise.reject(err);
+    });
+    return () => api.interceptors.response.eject(id);
+  }, []);
+
+  const submitCode = async (e) => {
+    e.preventDefault();
+    setCodeError(null);
+    setAccessCode(codeInput.trim());
+    try {
+      await api.get('/keys', { timeout: 15000 });
+      setNeedCode(false);
+      setCodeInput('');
+      loadResumes();
+      loadQuota();
+    } catch (err) {
+      setAccessCode('');
+      setCodeError(err?.response?.status === 401 ? 'Wrong code.' : errorMessage(err, 'Could not verify the code.'));
+    }
+  };
 
   const switchTab = (next) => {
     setTab(next);
@@ -225,7 +256,17 @@ export default function Home() {
           </p>
         </section>
 
-        <div className={styles.grid}>
+        {needCode && (
+          <form className={`${styles.card} ${styles.cardPad} ${styles.gate} ${styles.fadeIn}`} onSubmit={submitCode}>
+            <div className={styles.cardTitle}><span>Private beta</span></div>
+            <p className={styles.hint}>This app is for a few people. Enter the access code you were given.</p>
+            <input className={styles.input} type="password" placeholder="Access code" value={codeInput} onChange={(e) => setCodeInput(e.target.value)} autoFocus />
+            {codeError && <div className={`${styles.alert} ${styles.alertError}`}>{codeError}</div>}
+            <button type="submit" className={`${styles.btn} ${styles.btnPrimary}`} disabled={!codeInput.trim()}>Continue</button>
+          </form>
+        )}
+
+        <div className={styles.grid} style={needCode ? { display: 'none' } : undefined}>
           <section className={`${styles.card} ${styles.cardPad}`}>
             <div className={styles.tabs} role="tablist">
               <button role="tab" aria-selected={tab === 'tailor'} className={`${styles.tab} ${tab === 'tailor' ? styles.tabActive : ''}`} onClick={() => switchTab('tailor')}>

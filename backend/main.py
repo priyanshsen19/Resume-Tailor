@@ -10,6 +10,7 @@ import subprocess
 import tempfile
 import shutil
 import asyncio
+import hmac
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Optional, List
@@ -65,6 +66,8 @@ key_pool = pool_from_env()
 # Per-user persistence (Supabase). Falls back to ./resumes when not configured.
 store = store_from_env()
 RESUME_FILE_PREFIX = os.getenv("RESUME_FILE_PREFIX", "Resume_Priyansh")
+# Optional shared secret: only people who know it can use the app. Unset = open.
+ACCESS_CODE = os.getenv("ACCESS_CODE", "").strip()
 
 app = FastAPI(title="Resume Tailor API", version="1.0.0")
 
@@ -376,7 +379,14 @@ async def run_sync(fn, *args):
     return await asyncio.get_event_loop().run_in_executor(executor, fn, *args)
 
 
-async def current_user(authorization: Optional[str] = Header(None)) -> Optional[str]:
+async def require_access_code(x_access_code: Optional[str] = Header(None)) -> None:
+    """Gate every app route behind the shared ACCESS_CODE when one is configured."""
+    if ACCESS_CODE and not hmac.compare_digest(x_access_code or "", ACCESS_CODE):
+        raise HTTPException(status_code=401, detail="Invalid access code")
+
+
+async def current_user(authorization: Optional[str] = Header(None),
+                       _: None = Depends(require_access_code)) -> Optional[str]:
     """Supabase user id from the Bearer token; None in local (no-Supabase) mode."""
     if not store.enabled:
         return None
@@ -600,7 +610,7 @@ async def download_resume(folder: str, filename: str, inline: bool = False):
 
 
 @app.get("/keys")
-async def key_pool_status():
+async def key_pool_status(_: None = Depends(require_access_code)):
     """Per-key usage for today and how many requests remain across the pool."""
     return key_pool.status()
 
@@ -612,7 +622,8 @@ async def root():
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "service": "Resume Tailor API", "storage": "supabase" if store.enabled else "local"}
+    return {"status": "ok", "service": "Resume Tailor API",
+            "storage": "supabase" if store.enabled else "local", "access_code_required": bool(ACCESS_CODE)}
 
 
 if __name__ == "__main__":

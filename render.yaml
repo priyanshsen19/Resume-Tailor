@@ -37,3 +37,5 @@ services:
         value: resumes
       - key: RESUME_TTL_HOURS
         value: "24"
+      - key: ACCESS_CODE
+        sync: false            # shared secret for you + friends (optional)

@@ -928,3 +928,11 @@
   box-shadow: var(--ring);
   outline: none;
 }
+
+.gate {
+  max-width: 420px;
+  margin: 0 auto 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}

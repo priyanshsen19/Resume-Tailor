@@ -6,9 +6,15 @@ export const BACKEND_URL = (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://local
 export const api = axios.create({ baseURL: BACKEND_URL });
 
 // Attach the Supabase session token so the API can scope resumes to this user.
+const CODE_KEY = 'rt_access_code';
+export const getAccessCode = () => { try { return localStorage.getItem(CODE_KEY) || ''; } catch { return ''; } };
+export const setAccessCode = (v) => { try { v ? localStorage.setItem(CODE_KEY, v) : localStorage.removeItem(CODE_KEY); } catch { /* ignore */ } };
+
 api.interceptors.request.use(async (config) => {
   const token = await getAccessToken();
   if (token) config.headers.Authorization = `Bearer ${token}`;
+  const code = getAccessCode();
+  if (code) config.headers['X-Access-Code'] = code;
   return config;
 });
 
