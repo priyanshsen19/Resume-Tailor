@@ -11,6 +11,9 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 # TeX Live. fonts-extra is large but provides fontawesome5 + cfr-lm, which the
 # template requires; pictures provides tikz for tcolorbox's `most` libraries.
+# lmodern = pdflatex support for Latin Modern (cfr-lm sits on it) - Debian ships
+# it separately from fonts-lmodern (OpenType only) and only as a Recommends.
+# cm-super = Type1 versions of T1-encoded Computer Modern (vector, not bitmap).
 RUN apt-get update && apt-get install -y --no-install-recommends \
         texlive-latex-base \
         texlive-latex-recommended \
@@ -18,6 +21,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         texlive-fonts-recommended \
         texlive-fonts-extra \
         texlive-pictures \
+        lmodern \
+        cm-super-minimal \
         curl ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
