@@ -84,7 +84,12 @@ export default function Home() {
       }
     };
     ensureSession()
-      .catch((e) => setError(`Could not start a session: ${e.message}`))
+      .catch((e) => {
+        const msg = /anonymous sign-ins are disabled/i.test(e.message)
+          ? 'Supabase is rejecting sign-ins: enable "Anonymous sign-ins" under Authentication → Sign In / Providers in the Supabase dashboard, then reload.'
+          : `Could not start a session: ${e.message}`;
+        setError(msg);
+      })
       .finally(ping);
     return () => { cancelled = true; };
   }, [loadResumes, loadQuota]);
