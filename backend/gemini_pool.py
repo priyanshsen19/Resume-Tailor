@@ -34,6 +34,7 @@ from zoneinfo import ZoneInfo
 import google.ai.generativelanguage as glm
 import google.generativeai as genai
 from google.api_core import exceptions as gexc
+from google.api_core import retry as gretry
 
 # Google resets free-tier daily quotas at midnight Pacific time.
 QUOTA_TZ = ZoneInfo("America/Los_Angeles")
@@ -42,6 +43,14 @@ PER_MINUTE_COOLDOWN_SECONDS = 60
 # resume from a long JD -> "504 Deadline expired before operation could complete".
 REQUEST_TIMEOUT_SECONDS = int(os.getenv("GEMINI_TIMEOUT_SECONDS", "240"))
 DEADLINE_RETRIES = 1
+# 503 "high demand": keep retrying the same model for this long, then move to
+# the next model in GEMINI_FALLBACK_MODELS (comma-separated).
+UNAVAILABLE_RETRY_SECONDS = int(os.getenv("GEMINI_UNAVAILABLE_RETRY_SECONDS", "45"))
+FALLBACK_MODELS = [m.strip() for m in os.getenv("GEMINI_FALLBACK_MODELS", "gemini-3.5-flash,gemini-3.5-flash-lite").split(",") if m.strip()]
+
+
+class ModelUnavailable(Exception):
+    pass
 
 
 class _TimeoutClient:
@@ -52,6 +61,10 @@ class _TimeoutClient:
 
     def generate_content(self, request, **kwargs):
         kwargs.setdefault("timeout", REQUEST_TIMEOUT_SECONDS)
+        kwargs.setdefault("retry", gretry.Retry(
+            predicate=gretry.if_exception_type(gexc.ServiceUnavailable),
+            initial=2.0, maximum=15.0, multiplier=2.0, timeout=UNAVAILABLE_RETRY_SECONDS,
+        ))
         return self._inner.generate_content(request, **kwargs)
 
     def __getattr__(self, name):
@@ -173,7 +186,20 @@ class GeminiKeyPool:
 
     # ------------------------------------------------------------------ public API
     def generate(self, model_name: str, contents, generation_config=None):
-        """Call `GenerativeModel.generate_content` with automatic key rotation."""
+        """Generate with key rotation; on 503 "high demand" fall back through FALLBACK_MODELS."""
+        models = [model_name] + [m for m in FALLBACK_MODELS if m != model_name]
+        for i, name in enumerate(models):
+            try:
+                return self._generate_with_model(name, contents, generation_config)
+            except (gexc.ServiceUnavailable, gexc.RetryError) as e:
+                if i + 1 < len(models):
+                    print(f"[KEYPOOL] {name} unavailable ({e.__class__.__name__}); falling back to {models[i + 1]}")
+                    continue
+                raise ModelUnavailable(
+                    f"Gemini is overloaded right now (tried {', '.join(models)}). Please try again in a minute."
+                ) from e
+
+    def _generate_with_model(self, model_name: str, contents, generation_config=None):
         tried: set = set()
         cooldown_waits = 0
         deadline_retries = 0

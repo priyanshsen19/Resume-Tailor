@@ -26,7 +26,7 @@ from PIL import Image
 import io
 
 from latex_utils import prepare_tex, latex_error_from_log
-from gemini_pool import pool_from_env, AllKeysExhausted
+from gemini_pool import pool_from_env, AllKeysExhausted, ModelUnavailable
 from resume_store import store_from_env, AuthError, ResumeRecord
 
 # Load environment variables
@@ -146,6 +146,8 @@ def extract_text_from_image(image_data: bytes) -> str:
         return response.text
     except AllKeysExhausted as e:
         raise HTTPException(status_code=429, detail=str(e))
+    except ModelUnavailable as e:
+        raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Image processing failed: {str(e)}")
 
@@ -230,6 +232,8 @@ Return ONLY the COMPLETE cleaned and tailored LaTeX resume:"""
         raise
     except AllKeysExhausted as e:
         raise HTTPException(status_code=429, detail=str(e))
+    except ModelUnavailable as e:
+        raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:
         error_msg = str(e)
         print(f"[ERROR] Gemini tailor error: {error_msg}")
