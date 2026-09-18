@@ -38,6 +38,24 @@ from google.api_core import exceptions as gexc
 # Google resets free-tier daily quotas at midnight Pacific time.
 QUOTA_TZ = ZoneInfo("America/Los_Angeles")
 PER_MINUTE_COOLDOWN_SECONDS = 60
+# gRPC deadline per request. The SDK default (60s) is too short for a full
+# resume from a long JD -> "504 Deadline expired before operation could complete".
+REQUEST_TIMEOUT_SECONDS = int(os.getenv("GEMINI_TIMEOUT_SECONDS", "240"))
+DEADLINE_RETRIES = 1
+
+
+class _TimeoutClient:
+    """Proxy around GenerativeServiceClient that applies our deadline to every call."""
+
+    def __init__(self, inner):
+        self._inner = inner
+
+    def generate_content(self, request, **kwargs):
+        kwargs.setdefault("timeout", REQUEST_TIMEOUT_SECONDS)
+        return self._inner.generate_content(request, **kwargs)
+
+    def __getattr__(self, name):
+        return getattr(self._inner, name)
 
 
 class AllKeysExhausted(Exception):
@@ -150,7 +168,7 @@ class GeminiKeyPool:
 
     def _client_for(self, state: _KeyState) -> glm.GenerativeServiceClient:
         if state.client is None:
-            state.client = glm.GenerativeServiceClient(client_options={"api_key": state.key})
+            state.client = _TimeoutClient(glm.GenerativeServiceClient(client_options={"api_key": state.key}))
         return state.client
 
     # ------------------------------------------------------------------ public API
@@ -158,6 +176,7 @@ class GeminiKeyPool:
         """Call `GenerativeModel.generate_content` with automatic key rotation."""
         tried: set = set()
         cooldown_waits = 0
+        deadline_retries = 0
         while True:
             with self._lock:
                 self._roll_day_if_needed()
@@ -184,6 +203,14 @@ class GeminiKeyPool:
                 self._on_quota_error(state, str(e))
                 tried.add(state.label)
                 continue
+            except gexc.DeadlineExceeded:
+                # Gemini took too long (504). The call may still have counted; retry once.
+                self._record(state)
+                if deadline_retries < DEADLINE_RETRIES:
+                    deadline_retries += 1
+                    print(f"[KEYPOOL] {state.label} deadline exceeded after {REQUEST_TIMEOUT_SECONDS}s; retrying")
+                    continue
+                raise
             except (gexc.PermissionDenied, gexc.Unauthenticated) as e:
                 self._disable(state, f"rejected: {e.__class__.__name__}")
                 tried.add(state.label)

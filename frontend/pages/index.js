@@ -10,7 +10,7 @@ import RecentResumes from '../components/RecentResumes';
 import QuotaCard from '../components/QuotaCard';
 import { Sparkles, Refresh, Logo } from '../components/Icons';
 
-const REQUEST_TIMEOUT_MS = 240000;
+const REQUEST_TIMEOUT_MS = 600000; // backend may retry a slow Gemini call once (2 x 240s)
 const NEW_UPLOAD = '__new__';
 
 export default function Home() {
