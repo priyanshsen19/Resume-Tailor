@@ -229,7 +229,7 @@
 }
 
 @media (max-width: 600px) {
-  .tabs { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+  .tabs { display: grid; grid-template-columns: 1fr 1fr 1fr; width: 100%; }
   .tab { white-space: nowrap; font-size: 13px; padding: 9px 8px; text-align: center; }
 }
 
@@ -954,4 +954,20 @@
   font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 2px;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12.5px;
+  line-height: 1.55;
+  min-height: 420px;
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow-x: auto;
+}
+
+.alertOk {
+  color: var(--success);
+  background: var(--success-soft);
+  border-color: color-mix(in srgb, var(--success) 30%, transparent);
 }

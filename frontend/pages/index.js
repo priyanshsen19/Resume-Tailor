@@ -8,6 +8,7 @@ import Progress from '../components/Progress';
 import ResultPanel from '../components/ResultPanel';
 import RecentResumes from '../components/RecentResumes';
 import QuotaCard from '../components/QuotaCard';
+import BaseResume from '../components/BaseResume';
 import { Sparkles, Refresh, Logo } from '../components/Icons';
 
 const REQUEST_TIMEOUT_MS = 600000; // backend may retry a slow Gemini call once (2 x 240s)
@@ -300,6 +301,9 @@ export default function Home() {
               <button role="tab" aria-selected={tab === 'recompile'} className={`${styles.tab} ${tab === 'recompile' ? styles.tabActive : ''}`} onClick={() => switchTab('recompile')}>
                 Recompile
               </button>
+              <button role="tab" aria-selected={tab === 'base'} className={`${styles.tab} ${tab === 'base' ? styles.tabActive : ''}`} onClick={() => switchTab('base')}>
+                Base resume
+              </button>
             </div>
 
             {backend === 'offline' && (
@@ -404,6 +408,7 @@ export default function Home() {
                 <div ref={resultRef}>{result && <ResultPanel result={result} />}</div>
               </form>
             )}
+            {tab === 'base' && <BaseResume unlocked={unlocked()} withAccess={withAccess} />}
           </section>
 
           <aside className={styles.aside}>

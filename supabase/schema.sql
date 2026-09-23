@@ -30,3 +30,13 @@ alter table public.resumes enable row level security;
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values ('resumes', 'resumes', false, 10485760, array['application/pdf', 'text/x-tex', 'text/plain'])
 on conflict (id) do nothing;
+
+-- Per-user base resume template (the LaTeX the tailor starts from).
+-- No expiry: unlike generated resumes, a template is kept until replaced.
+create table if not exists public.templates (
+  user_id     uuid primary key references auth.users (id) on delete cascade,
+  tex         text not null,
+  updated_at  timestamptz not null default now()
+);
+
+alter table public.templates enable row level security;

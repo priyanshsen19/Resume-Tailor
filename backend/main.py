@@ -99,6 +99,9 @@ if not DEFAULT_RESUME_PATH.exists():
 with open(DEFAULT_RESUME_PATH, "r") as f:
     DEFAULT_RESUME = f.read()
 
+# Local (no-Supabase) mode keeps the custom base template next to the outputs.
+LOCAL_TEMPLATE_PATH = OUTPUT_DIR / "base_template.tex"
+
 
 class TailorRequest(BaseModel):
     company: str
@@ -152,13 +155,13 @@ def extract_text_from_image(image_data: bytes) -> str:
         raise HTTPException(status_code=400, detail=f"Image processing failed: {str(e)}")
 
 
-def tailor_resume_with_gemini(jd_text: str, company: str, role: str) -> str:
+def tailor_resume_with_gemini(jd_text: str, company: str, role: str, base_resume: str) -> str:
     """Use Gemini to tailor the resume based on JD, preserving LaTeX structure."""
     
     # TEST MODE - skip Gemini, save tokens
     if TEST_MODE:
         print("[TEST MODE] Skipping Gemini, using default resume")
-        return prepare_tex(DEFAULT_RESUME, DEFAULT_RESUME, use_template_preamble=True)
+        return prepare_tex(base_resume, base_resume, use_template_preamble=True)
     
     prompt = f"""You are an expert resume tailor and LaTeX editor. Return a complete, clean, valid LaTeX resume file.
 
@@ -186,7 +189,7 @@ JOB DESCRIPTION:
 ---
 
 ORIGINAL RESUME (complete LaTeX file - preserve its structure exactly):
-{DEFAULT_RESUME}
+{base_resume}
 
 ---
 
@@ -223,7 +226,7 @@ Return ONLY the COMPLETE cleaned and tailored LaTeX resume:"""
 
         # Strip fences/chatter, normalise Unicode, keep ONLY the body from
         # Gemini (preamble always comes from the template), escape specials.
-        tailored_tex = prepare_tex(raw, DEFAULT_RESUME, use_template_preamble=True)
+        tailored_tex = prepare_tex(raw, base_resume, use_template_preamble=True)
 
         print("[SUCCESS] Gemini returned usable LaTeX resume body")
         return tailored_tex
@@ -259,7 +262,7 @@ def _gemini_text(prompt: str, max_output_tokens: int) -> str:
     return text
 
 
-def repair_latex_with_gemini(tex_content: str, error_detail: str) -> str:
+def repair_latex_with_gemini(tex_content: str, error_detail: str, base_resume: str) -> str:
     """Ask Gemini to fix a document that pdflatex rejected. Returns cleaned LaTeX."""
     prompt = f"""You are a LaTeX expert. The resume below FAILED to compile with pdflatex.
 
@@ -275,7 +278,7 @@ No markdown fences. No commentary. Only raw .tex content.
 
 {tex_content}"""
     raw = _gemini_text(prompt, max_output_tokens=16000)
-    return prepare_tex(raw, DEFAULT_RESUME, use_template_preamble=True)
+    return prepare_tex(raw, base_resume, use_template_preamble=True)
 
 
 
@@ -346,7 +349,7 @@ async def compile_tex_to_pdf(tex_content: str, output_tex_path: Path) -> Path:
     return pdf_path
 
 
-async def compile_with_repair(tex_content: str, output_tex_path: Path) -> Path:
+async def compile_with_repair(tex_content: str, output_tex_path: Path, base_resume: str = DEFAULT_RESUME) -> Path:
     """Compile; on failure ask Gemini to repair the LaTeX and retry.
 
     The .tex on disk always reflects the last attempt, so a failed run can be
@@ -365,7 +368,7 @@ async def compile_with_repair(tex_content: str, output_tex_path: Path) -> Path:
             print(f"[REPAIR] Attempt {attempt + 1}/{MAX_LATEX_REPAIR_ATTEMPTS}: asking Gemini to fix LaTeX")
             try:
                 tex_content = await loop.run_in_executor(
-                    executor, repair_latex_with_gemini, tex_content, e.detail
+                    executor, repair_latex_with_gemini, tex_content, e.detail, base_resume
                 )
             except Exception as repair_err:
                 print(f"[REPAIR] Gemini repair failed: {repair_err}")
@@ -426,6 +429,31 @@ def _local_resume_out(folder: Path) -> Optional[ResumeOut]:
         pdf_download_url=f"/download/{folder.name}/{pdf.name}" if pdf else None,
         tex_url=f"/download/{folder.name}/{tex.name}",
     )
+
+
+async def base_resume_for(user_id: Optional[str]) -> str:
+    """The user's saved base template, or the bundled default."""
+    if store.enabled:
+        tex = await run_sync(store.get_template, user_id)
+        return tex or DEFAULT_RESUME
+    if LOCAL_TEMPLATE_PATH.exists():
+        return LOCAL_TEMPLATE_PATH.read_text(encoding="utf-8", errors="replace")
+    return DEFAULT_RESUME
+
+
+def _validate_template(tex: str) -> str:
+    """Normalise a user-supplied template and prove pdflatex accepts it."""
+    try:
+        prepared = prepare_tex(tex, tex, use_template_preamble=True)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"That does not look like a LaTeX resume: {e}")
+
+    with tempfile.TemporaryDirectory() as tmp:
+        try:
+            _compile_tex_sync(prepared, Path(tmp) / "template.tex")
+        except LatexCompileError as e:
+            raise HTTPException(status_code=400, detail=f"Template does not compile:\n{e.detail}")
+    return prepared
 
 
 def _record_out(rec: ResumeRecord) -> ResumeOut:
@@ -497,8 +525,9 @@ async def tailor_resume(
     if not final_jd.strip():
         raise HTTPException(status_code=400, detail="No JD content found")
 
+    base_resume = await base_resume_for(user_id)
     print(f"[TAILOR] Starting Gemini API call for {company} - {role}")
-    tailored_tex = await run_sync(tailor_resume_with_gemini, final_jd, company, role)
+    tailored_tex = await run_sync(tailor_resume_with_gemini, final_jd, company, role, base_resume)
     print("[TAILOR] Gemini API call completed")
 
     safe_company, safe_role = _safe_name(company), _safe_name(role)
@@ -506,7 +535,7 @@ async def tailor_resume(
     output_folder.mkdir(parents=True, exist_ok=True)
     output_tex_path = output_folder / f"{RESUME_FILE_PREFIX}_{safe_company}.tex"
 
-    pdf_path = await compile_with_repair(tailored_tex, output_tex_path)
+    pdf_path = await compile_with_repair(tailored_tex, output_tex_path, base_resume)
     resume = await _persist(user_id, company, role, output_folder, output_tex_path, pdf_path)
 
     return StatusResponse(status="success", message=f"Resume tailored for {company} - {role}", resume=resume)
@@ -553,13 +582,14 @@ async def recompile_resume(
         tex_content = uploaded_tex
 
     # Keep the file's own (possibly hand-edited) preamble; sanitise the body.
-    tex_content = prepare_tex(tex_content, DEFAULT_RESUME, use_template_preamble=False)
+    base_resume = await base_resume_for(user_id)
+    tex_content = prepare_tex(tex_content, base_resume, use_template_preamble=False)
 
     output_folder = OUTPUT_DIR / folder_name
     output_folder.mkdir(parents=True, exist_ok=True)
     output_tex_path = output_folder / tex_name
 
-    pdf_path = await compile_with_repair(tex_content, output_tex_path)
+    pdf_path = await compile_with_repair(tex_content, output_tex_path, base_resume)
     resume = await _persist(user_id, company, role, output_folder, output_tex_path, pdf_path, resume_id)
 
     return StatusResponse(status="success", message="Resume recompiled successfully", resume=resume)
@@ -611,6 +641,50 @@ async def download_resume(folder: str, filename: str, inline: bool = False):
         filename=filename,
         content_disposition_type="inline" if inline else "attachment",
     )
+
+
+@app.get("/template")
+async def get_template(user_id: Optional[str] = Depends(current_user)):
+    """The base resume the tailor starts from: the user's own, or the default."""
+    if store.enabled:
+        tex = await run_sync(store.get_template, user_id)
+    else:
+        tex = LOCAL_TEMPLATE_PATH.read_text(encoding="utf-8", errors="replace") if LOCAL_TEMPLATE_PATH.exists() else None
+    return {"tex": tex or DEFAULT_RESUME, "is_custom": tex is not None}
+
+
+@app.put("/template", response_model=StatusResponse)
+async def put_template(
+    tex: Optional[str] = Form(None),
+    tex_file: Optional[UploadFile] = File(None),
+    user_id: Optional[str] = Depends(current_user),
+):
+    """Save a new base resume. Rejected unless it compiles, so tailoring can't break."""
+    if tex_file:
+        tex = (await tex_file.read()).decode("utf-8", errors="replace")
+    if not tex or not tex.strip():
+        raise HTTPException(status_code=400, detail="Provide the LaTeX as text or a .tex file")
+
+    prepared = await run_sync(_validate_template, tex)
+    if store.enabled:
+        try:
+            await run_sync(store.save_template, user_id, prepared)
+        except RuntimeError as e:
+            raise HTTPException(status_code=503, detail=str(e))
+    else:
+        LOCAL_TEMPLATE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        LOCAL_TEMPLATE_PATH.write_text(prepared, encoding="utf-8")
+    return StatusResponse(status="success", message="Base resume saved. New resumes will use it.")
+
+
+@app.delete("/template", response_model=StatusResponse)
+async def reset_template(user_id: Optional[str] = Depends(current_user)):
+    """Drop the custom template and go back to the bundled default."""
+    if store.enabled:
+        await run_sync(store.delete_template, user_id)
+    elif LOCAL_TEMPLATE_PATH.exists():
+        LOCAL_TEMPLATE_PATH.unlink()
+    return StatusResponse(status="success", message="Reverted to the default template.")
 
 
 @app.get("/keys")

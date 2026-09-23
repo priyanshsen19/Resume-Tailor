@@ -167,6 +167,49 @@ class ResumeStore:
         self.client.table("resumes").delete().eq("id", resume_id).eq("user_id", user_id).execute()
         return True
 
+    # ------------------------------------------------------------------ base template
+    MISSING_TABLE_HINT = (
+        "The 'templates' table does not exist yet. Run supabase/schema.sql "
+        "(or supabase/migrations/002_templates.sql) in the Supabase SQL editor."
+    )
+
+    @staticmethod
+    def _is_missing_table(e: Exception) -> bool:
+        return "PGRST205" in str(e) or "public.templates" in str(e)
+
+    def get_template(self, user_id: str) -> Optional[str]:
+        """The user's saved base resume LaTeX, or None if they use the default."""
+        try:
+            data = (
+                self.client.table("templates").select("tex")
+                .eq("user_id", user_id).limit(1).execute().data
+            )
+        except Exception as e:
+            if self._is_missing_table(e):
+                print(f"[STORE] {self.MISSING_TABLE_HINT}")
+                return None
+            raise
+        return data[0]["tex"] if data else None
+
+    def save_template(self, user_id: str, tex: str) -> None:
+        try:
+            self.client.table("templates").upsert({
+                "user_id": user_id, "tex": tex, "updated_at": _now().isoformat(),
+            }).execute()
+        except Exception as e:
+            if self._is_missing_table(e):
+                raise RuntimeError(self.MISSING_TABLE_HINT) from e
+            raise
+
+    def delete_template(self, user_id: str) -> bool:
+        try:
+            data = self.client.table("templates").delete().eq("user_id", user_id).execute().data
+        except Exception as e:
+            if self._is_missing_table(e):
+                return False
+            raise
+        return bool(data)
+
     # ------------------------------------------------------------------ expiry
     def purge_expired(self) -> int:
         """Delete rows past expires_at and their storage objects. Returns count."""
