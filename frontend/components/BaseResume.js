@@ -26,7 +26,11 @@ export default function BaseResume({ unlocked, withAccess, onSaved }) {
       setOriginal(data.tex);
       setIsCustom(data.is_custom);
     } catch (err) {
-      setError(errorMessage(err, 'Could not load the base resume.'));
+      setError(
+        err?.response?.status === 404
+          ? 'This feature needs a newer server. The API is running an older build without /template — redeploy the backend, then reload.'
+          : errorMessage(err, 'Could not load the base resume.')
+      );
     } finally {
       setLoading(false);
     }
@@ -53,7 +57,11 @@ export default function BaseResume({ unlocked, withAccess, onSaved }) {
       setNotice(data.message);
       onSaved?.();
     } catch (err) {
-      setError(errorMessage(err, 'Could not save the base resume.'));
+      setError(
+        err?.response?.status === 404
+          ? 'This feature needs a newer server. The API is running an older build without /template — redeploy the backend, then reload.'
+          : errorMessage(err, 'Could not save the base resume.')
+      );
     } finally {
       setSaving(false);
     }
